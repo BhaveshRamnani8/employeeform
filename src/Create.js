@@ -29,7 +29,7 @@ export default function Create() {
     hobbies: "",
     salary: "",
     address: "",
-    countryId: 0,
+    countryId: "",
     stateId: 0,
     cityId: 0,
     zipCode: "",
@@ -40,11 +40,11 @@ export default function Create() {
     const name = event.target.name;
     const value = event.target.value;
 
-    if (name == "maritalStatus") {
+    if (name === "maritalStatus") {
       setDataValues((prevValues) => {
         return { ...prevValues, [name]: event.target.checked };
       });
-    } else if (name == "birthDate") {
+    } else if (name === "birthDate") {
       setDataValues((prevValues) => {
         return { ...prevValues, [name]: dayjs(event.target.value) };
       });
@@ -54,14 +54,14 @@ export default function Create() {
       });
     }
 
-    if (name == "countryId") {
+    if (name === "countryId") {
       setCityList([]);
       setDataValues((prevValues) => {
         return { ...prevValues, stateId: "" };
       });
     }
 
-    if (name == "stateId") {
+    if (name === "stateId") {
       setDataValues((prevValues) => {
         return { ...prevValues, cityId: "" };
       });
@@ -74,6 +74,14 @@ export default function Create() {
   const [cityList, setCityList] = useState([]);
   const [hobbie, setHobbies] = useState([]);
   const hobbiesList = ["Singing", "Codeing", "Reading", "Dancing", "Surfing"];
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -94,21 +102,13 @@ export default function Create() {
   }, [data.countryId]);
 
   useEffect(() => {
-    if (data.stateId !== "") {
+    if (data.stateId !== 0) {
       axios
         .get(`https://localhost:7087/api/City/stateId?stateId=${data.stateId}`)
         .then((response) => setCityList(response.data))
         .catch((error) => console.log(error));
     }
-  }, [data.stateId]);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-
-  const navigate = useNavigate();
+  }, [data.stateId]);  
 
   const onSubmit = () => {
     const header = { "Access-Control-Allow-Origin": "*" };
@@ -216,7 +216,6 @@ export default function Create() {
         <RadioGroup
           row
           {...register("gender")}
-          //onChange={(e) => setGender(e.target.value)}
           value={data.gender}
           onChange={onDataChange}
         >
@@ -230,6 +229,7 @@ export default function Create() {
         Are you Married ?
         <Checkbox
           {...register("maritalStatus")}
+          checked={data.maritalStatus}
           value={data.maritalStatus}
           onChange={onDataChange}
         />
@@ -296,7 +296,6 @@ export default function Create() {
       <InputLabel id="country">
         Country :
         <Select
-          //onChange={handleCountryChange}
           placeholder="Select your Country"
           style={{ minWidth: "300px", height: "30px" }}
           {...register("countryId")}
@@ -314,7 +313,6 @@ export default function Create() {
       <InputLabel>
         State :
         <Select
-          //onChange={handleStateChange}
           {...register("stateId")}
           value={data.stateId}
           onChange={onDataChange}
@@ -331,7 +329,6 @@ export default function Create() {
       <InputLabel>
         City :
         <Select
-          //onChange={handleCityChange}
           {...register("cityId")}
           value={data.cityId}
           onChange={onDataChange}

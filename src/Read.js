@@ -1,16 +1,10 @@
 import { Button } from "@mui/material";
-import { alignProperty } from "@mui/material/styles/cssUtils";
-import { Col, Divider, Row, Space, Table } from "antd";
+import { Space, Table } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { styled } from "@mui/material/styles";
-import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
-import Box from "@mui/material/Box";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Column from "antd/es/table/Column";
-import { render } from "@testing-library/react";
 
 function Read() {
   const navigate = useNavigate();
@@ -37,14 +31,6 @@ function Read() {
     });
   }
 
-  const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    textAlign: "center",
-    color: theme.palette.text.secondary,
-  }));
-
   return (
     <div className="App">
       <h1>Employee Details</h1>
@@ -54,7 +40,7 @@ function Read() {
       <br />
       <br />
       <br />
-      <Table dataSource={employeeData}>
+      <Table dataSource={employeeData} key="empTable">
         <Column title="Id" dataIndex="id" key="id" />
         <Column title="FirstName" dataIndex="firstName" key="firstName" />
         <Column title="LastName" dataIndex="lastName" key="lastName" />
@@ -67,7 +53,7 @@ function Read() {
           render={(_, record) => (
             <Space size="middle">
               <Link to="/edit" state={{ data: record }}>
-                <Button variant="contained" color="secondary" size="small">
+                <Button variant="contained" color="secondary" size="small" key="edit">
                   Edit
                 </Button>
               </Link>
@@ -76,6 +62,7 @@ function Read() {
                 color="error"
                 size="small"
                 onClick={() => handleDelete(record.id)}
+                key= "delete"
               >
                 Delete
               </Button>

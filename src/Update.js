@@ -16,7 +16,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import axios from "axios";
-import { json, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Update() {
   const location = useLocation();
@@ -41,24 +41,24 @@ export default function Update() {
     const name = event.target.name;
     const value = event.target.value;
 
-    if(name == "maritalStatus"){
+    if(name === "maritalStatus"){
       setDataValues((prevValues)=> {return {...prevValues, [name]: event.target.checked}});
     }
-    else if(name == "birthDate"){
+    else if(name === "birthDate"){
       setDataValues((prevValues)=> {return {...prevValues, [name]: dayjs(event.target.value)}});
     }
     else{
       setDataValues((prevValues)=> {return {...prevValues, [name]: value}});
     }
     
-    if (name == "countryId") {
+    if (name === "countryId") {
       setCityList([]);
       setDataValues((prevValues) => {
         return { ...prevValues, stateId: "" };
       });
     }
 
-    if (name == "stateId") {
+    if (name === "stateId") {
       setDataValues((prevValues) => {
         return { ...prevValues, cityId: "" };
       });
@@ -69,7 +69,16 @@ export default function Update() {
   const [countryList, setCountryList] = useState([]);
   const [stateList, setStateList] = useState([]);
   const [cityList, setCityList] = useState([]);
-  const [hobbie, setHobbies] = useState([]);    
+  const [hobbie, setHobbies] = useState([]);
+  const hobbiesList = ["Singing", "Codeing", "Reading", "Dancing", "Surfing"];    
+  const menuProps = {
+    PaperProps: {
+      style: {
+        maxHeight: 225,
+        width: 2500,
+      },
+    },
+  };  
 
   const {
     register,
@@ -78,10 +87,12 @@ export default function Update() {
     setValue
   } = useForm();
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const formData = location?.state?.data;
-    Object.keys(formData).forEach(function(key){
-      setValue(key, formData[key]);
+    Object.keys(formData).forEach(function(key){      
+        setValue(key, formData[key]);
     });    
     setDataValues(location.state?.data);        
     setHobbies(location.state?.data?.hobbies.split(","));
@@ -114,11 +125,7 @@ export default function Update() {
         .then((response) => setCityList(response.data))
         .catch((error) => console.log(error));
     }
-  }, [data.stateId]);
-
-
-
-  const navigate = useNavigate();
+  }, [data.stateId]);  
 
   const onSubmit = () => {
     const header = { "Access-Control-Allow-Origin": "*" };    
@@ -148,17 +155,7 @@ export default function Update() {
 
   const onBackClick = () => {
     navigate("/");
-  };
-
-  const menuProps = {
-    PaperProps: {
-      style: {
-        maxHeight: 225,
-        width: 2500,
-      },
-    },
-  };
-  const hobbiesList = ["Singing", "Codeing", "Reading", "Dancing", "Surfing"];
+  };  
 
   return (
     <form
