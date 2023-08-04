@@ -2,44 +2,53 @@ import { Button } from "@mui/material";
 import { Space, Table } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import Column from "antd/es/table/Column";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
+import { employeeListUrl } from "./Constants";
 
 function Read() {
-  const navigate = useNavigate();
-  const onCreateClick = () => {
-    navigate("/Create");
-  };
+  const [employeeData, setEmployeeData] = useState([]);
 
-  const [employeeData, setEmployyeData] = useState([]);
-
-  function getData() {
+  function LoadEmployeeData() {
     axios
-      .get("https://localhost:7087/api/Employee")
-      .then((response) => setEmployyeData(response.data))
+      .get(employeeListUrl)
+      .then((response) => setEmployeeData(response.data))
       .catch((error) => console.log(error));
   }
+
   useEffect(() => {
-    getData();
+    LoadEmployeeData();
   }, []);
-  
 
   function handleDelete(id) {
-    axios.delete(`https://localhost:7087/api/Employee/${id}`).then(() => {
-      getData();
+    confirmAlert({
+      title: "Delete Employee",
+      message: "Are you sure you want to delete this record permanently?",
+      buttons: [
+        {
+          label: "Yes",
+          onClick: () => {
+            axios.delete(`${employeeListUrl}/${id}`).then(() => {
+              LoadEmployeeData();
+            });
+          },
+        },
+        {
+          label: "No",
+        },
+      ],
     });
   }
 
   return (
     <div className="App">
       <h1>Employee Details</h1>
-      <Button variant="contained" onClick={onCreateClick}>
-        Create Employee
-      </Button>
-      <br />
-      <br />
-      <br />
+      <Link to={`/EmployeeForm/0`}>
+        <Button variant="contained">Create Employee</Button>
+      </Link>
+      <br /> <br /> <br />
       <Table dataSource={employeeData} key="empTable">
         <Column title="Id" dataIndex="id" key="id" />
         <Column title="FirstName" dataIndex="firstName" key="firstName" />
@@ -52,8 +61,13 @@ function Read() {
           key="action"
           render={(_, record) => (
             <Space size="middle">
-              <Link to="/edit" state={{ data: record }}>
-                <Button variant="contained" color="secondary" size="small" key="edit">
+              <Link to={`/EmployeeForm/${record.id}`} state={{ data: record }}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  size="small"
+                  key="edit"
+                >
                   Edit
                 </Button>
               </Link>
@@ -62,7 +76,7 @@ function Read() {
                 color="error"
                 size="small"
                 onClick={() => handleDelete(record.id)}
-                key= "delete"
+                key="delete"
               >
                 Delete
               </Button>
@@ -70,9 +84,8 @@ function Read() {
           )}
         />
       </Table>
-
       <br />
-      <br />      
+      <br />
     </div>
   );
 }

@@ -16,10 +16,12 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import axios from "axios";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { employeeListUrl, countryListUrl, stateListUrl, cityListUrl, hobbiesList } from "./Constants";
 
-export default function Create() {
-  const [data, setDataValues] = useState({
+export default function EmployeeForm() {
+  
+    const [employeeData, setEmployeeData] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -29,117 +31,18 @@ export default function Create() {
     hobbies: "",
     salary: "",
     address: "",
-    countryId: "",
+    countryId: 0,
     stateId: 0,
     cityId: 0,
     zipCode: "",
     password: "",
   });
 
-  const onDataChange = (event) => {
-    const name = event.target.name;
-    const value = event.target.value;
-
-    if (name === "maritalStatus") {
-      setDataValues((prevValues) => {
-        return { ...prevValues, [name]: event.target.checked };
-      });
-    } else if (name === "birthDate") {
-      setDataValues((prevValues) => {
-        return { ...prevValues, [name]: dayjs(event.target.value) };
-      });
-    } else {
-      setDataValues((prevValues) => {
-        return { ...prevValues, [name]: value };
-      });
-    }
-
-    if (name === "countryId") {
-      setCityList([]);
-      setDataValues((prevValues) => {
-        return { ...prevValues, stateId: "" };
-      });
-    }
-
-    if (name === "stateId") {
-      setDataValues((prevValues) => {
-        return { ...prevValues, cityId: "" };
-      });
-    }    
-  };
-
   const [birthDate, setBirthDate] = useState(null);
   const [countryList, setCountryList] = useState([]);
   const [stateList, setStateList] = useState([]);
   const [cityList, setCityList] = useState([]);
-  const [hobbie, setHobbies] = useState([]);
-  const hobbiesList = ["Singing", "Codeing", "Reading", "Dancing", "Surfing"];
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm();
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    axios
-      .get("https://localhost:7087/api/Country")
-      .then((response) => setCountryList(response.data))
-      .catch((error) => console.log(error));
-  }, []);
-
-  useEffect(() => {
-    if (data.countryId !== 0) {
-      axios
-        .get(
-          `https://localhost:7087/api/State/countryId?countryId=${data.countryId}`
-        )
-        .then((response) => setStateList(response.data))
-        .catch((error) => console.log(error));
-    }
-  }, [data.countryId]);
-
-  useEffect(() => {
-    if (data.stateId !== 0) {
-      axios
-        .get(`https://localhost:7087/api/City/stateId?stateId=${data.stateId}`)
-        .then((response) => setCityList(response.data))
-        .catch((error) => console.log(error));
-    }
-  }, [data.stateId]);  
-
-  const onSubmit = () => {
-    const header = { "Access-Control-Allow-Origin": "*" };
-    axios
-      .post("https://localhost:7087/api/Employee", {
-        id: 0,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        gender: data.gender,
-        maritalStatus: data.maritalStatus === true ? 1 : 0,
-        birthDate: birthDate,
-        hobbies: hobbie.toString(),
-        salary: data.salary,
-        address: data.address,
-        countryId: data.countryId,
-        stateId: data.stateId,
-        cityId: data.cityId,
-        zipCode: data.zipCode,
-        password: data.password,
-        header,
-      })
-      .then(() => {
-        navigate("/");
-      });
-  };
-
-  const onBackClick = () => {
-    navigate("/");
-  };
-
+  const [hobby, setHobby] = useState([]);
   const menuProps = {
     PaperProps: {
       style: {
@@ -149,11 +52,126 @@ export default function Create() {
     },
   };
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm();
+
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isNewEmployee = id === "0";  
+
+  useEffect(() => {
+    if (!isNewEmployee) {
+      const formData = location?.state?.data;
+      Object.keys(formData).forEach(function (key) {
+        setValue(key, formData[key]);
+      });
+      setEmployeeData(location.state?.data);
+      setHobby(location.state?.data?.hobbies.split(","));
+      setBirthDate(dayjs(new Date(location.state?.data?.birthDate)));
+    }
+    //doubt
+  }, [location?.state?.data, setValue, isNewEmployee]);
+
+  useEffect(() => {
+    axios
+      .get(countryListUrl)
+      .then((response) => setCountryList(response.data))
+      .catch((error) => console.log(error));
+  }, []);
+
+  useEffect(() => {
+    if (employeeData.countryId !== 0) {
+      axios
+        .get(stateListUrl + employeeData.countryId)
+        .then((response) => setStateList(response.data))
+        .catch((error) => console.log(error));
+    }
+  }, [employeeData.countryId]);
+
+  useEffect(() => {
+    if (employeeData.stateId !== 0) {
+      axios
+        .get(cityListUrl + employeeData.stateId)
+        .then((response) => setCityList(response.data))
+        .catch((error) => console.log(error));
+    }
+  }, [employeeData.stateId]);
+
+  const onFormDataChange = (event) => {
+    const name = event.target.name;
+    const value = event.target.value;
+
+    if (name === "maritalStatus") {
+      setEmployeeData((prevValues) => {
+        return { ...prevValues, [name]: event.target.checked };
+      });
+    } else if (name === "birthDate") {
+      setEmployeeData((prevValues) => {
+        return { ...prevValues, [name]: dayjs(event.target.value) };
+      });
+    } else {
+      setEmployeeData((prevValues) => {
+        return { ...prevValues, [name]: value };
+      });
+    }
+
+    if (name === "countryId") {
+      setCityList([]);
+      setEmployeeData((prevValues) => {
+        return { ...prevValues, stateId: "" };
+      });
+    }
+
+    if (name === "stateId") {
+      setEmployeeData((prevValues) => {
+        return { ...prevValues, cityId: "" };
+      });
+    }
+  };
+
+  const onSubmit = () => {
+    const empData = {
+      id: id,
+      firstName: employeeData.firstName,
+      lastName: employeeData.lastName,
+      email: employeeData.email,
+      gender: employeeData.gender,
+      maritalStatus: employeeData.maritalStatus === true ? 1 : 0,
+      birthDate: birthDate,
+      hobbies: hobby.toString(),
+      salary: employeeData.salary,
+      address: employeeData.address,
+      countryId: employeeData.countryId,
+      stateId: employeeData.stateId,
+      cityId: employeeData.cityId,
+      zipCode: employeeData.zipCode,
+      password: employeeData.password,
+    };
+
+    if (isNewEmployee) {
+      axios.post(employeeListUrl, empData).then(() => {
+        navigate("/");
+      });
+    } else {
+      axios.put(`${employeeListUrl}/${id}`, empData).then(() => {
+        navigate("/");
+      });
+    }
+  };
+
+  const onBackClick = () => {
+    navigate("/");
+  };
+
   return (
     <form
       className="App"
       onSubmit={handleSubmit(onSubmit)}
-      noValidate
       autoComplete="off"
       layout="horizontal"
       spacing={2}
@@ -161,16 +179,14 @@ export default function Create() {
         maxWidth: 800,
       }}
     >
-      <h2>Employee Form</h2>
-
-      <InputLabel id="name" required>
+      <h2>{isNewEmployee ? "Create" : "Edit"} Employee</h2>
+      <InputLabel id="name">
         First Name :
         <Input
           placeholder="Enter First Name"
           variant="outlined"
-          {...register("firstName", { required: true })}
-          value={data.firstName}
-          onChange={onDataChange}
+          {...register("firstName", { required: "required message" })}
+          onChange={onFormDataChange}
         />
       </InputLabel>
       {errors?.firstName?.type === "required" && (
@@ -182,16 +198,16 @@ export default function Create() {
         <Input
           placeholder="Enter Last Name"
           variant="outlined"
+          value={employeeData.lastName}
           {...register("lastName", { required: true })}
-          value={data.lastName}
-          onChange={onDataChange}
+          onChange={onFormDataChange}
         />
       </InputLabel>
       {errors?.lastName?.type === "required" && (
         <p className="error">Please fill Last Name</p>
       )}
 
-      <InputLabel id="email" required>
+      <InputLabel required>
         E-mail :
         <Input
           placeholder="Enter email"
@@ -200,8 +216,8 @@ export default function Create() {
             required: true,
             pattern: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
           })}
-          value={data.email}
-          onChange={onDataChange}
+          value={employeeData.email}
+          onChange={onFormDataChange}
         />
       </InputLabel>
       {errors?.email?.type === "required" && (
@@ -215,9 +231,10 @@ export default function Create() {
         Gender :
         <RadioGroup
           row
+          name="gender"
           {...register("gender")}
-          value={data.gender}
-          onChange={onDataChange}
+          onChange={onFormDataChange}
+          value={employeeData.gender}
         >
           <FormControlLabel value="m" control={<Radio />} label="Male" />
           <FormControlLabel value="f" control={<Radio />} label="Female" />
@@ -228,10 +245,10 @@ export default function Create() {
       <InputLabel id="maritalStatus">
         Are you Married ?
         <Checkbox
+          checked={employeeData.maritalStatus}
+          value={employeeData.maritalStatus}
           {...register("maritalStatus")}
-          checked={data.maritalStatus}
-          value={data.maritalStatus}
-          onChange={onDataChange}
+          onChange={onFormDataChange}
         />
       </InputLabel>
 
@@ -243,7 +260,9 @@ export default function Create() {
             views={["year", "month", "day"]}
             slotProps={{ textField: { size: "small" } }}
             value={birthDate}
+            {...register("birthDate")}
             onChange={(newValue) => setBirthDate(newValue)}
+            //onChange= {onDataChange}
           />
         </LocalizationProvider>
       </InputLabel>
@@ -254,11 +273,12 @@ export default function Create() {
           MenuProps={menuProps}
           size="small"
           multiple
-          value={hobbie}
           {...register("hobbies")}
           style={{ minWidth: "300px", height: "30px" }}
-          onChange={(e) => setHobbies(e.target.value)}
+          onChange={(e) => setHobby(e.target.value)}
           placeholder="Select your Hobbies"
+          value={hobby}
+          //onChange={onDataChange}
         >
           {hobbiesList.map((name) => (
             <MenuItem key={name} value={name}>
@@ -275,35 +295,37 @@ export default function Create() {
           placeholder="Enter salary"
           variant="standard"
           {...register("salary")}
-          value={data.salary}
-          onChange={onDataChange}
+          value={employeeData.salary}
+          onChange={onFormDataChange}
         />
       </InputLabel>
 
       <InputLabel>
         Address :
         <TextField
+          id="address"
+          label=""
           multiline
           rows={3}
           size="small"
           placeholder="Enter address"
+          value={employeeData.address}
           {...register("address")}
-          value={data.address}
-          onChange={onDataChange}
+          onChange={onFormDataChange}
         />
       </InputLabel>
 
-      <InputLabel id="country">
+      <InputLabel id="countryId">
         Country :
         <Select
+          {...register("countryId")}
           placeholder="Select your Country"
           style={{ minWidth: "300px", height: "30px" }}
-          {...register("countryId")}
-          value={data.countryId}
-          onChange={onDataChange}
+          value={employeeData.countryId}
+          onChange={onFormDataChange}
         >
           {countryList.map((country, index) => (
-            <MenuItem value={country.id} key={index}>
+            <MenuItem value={country.id} key={country.id}>
               {country.name}
             </MenuItem>
           ))}
@@ -314,12 +336,12 @@ export default function Create() {
         State :
         <Select
           {...register("stateId")}
-          value={data.stateId}
-          onChange={onDataChange}
           style={{ minWidth: "300px", height: "30px" }}
+          value={employeeData.stateId}
+          onChange={onFormDataChange}
         >
           {stateList.map((state, index) => (
-            <MenuItem value={state.id} key={index}>
+            <MenuItem value={state.id} key={state.id}>
               {state.name}
             </MenuItem>
           ))}
@@ -330,12 +352,12 @@ export default function Create() {
         City :
         <Select
           {...register("cityId")}
-          value={data.cityId}
-          onChange={onDataChange}
           style={{ minWidth: "300px", height: "30px" }}
+          value={employeeData.cityId}
+          onChange={onFormDataChange}
         >
           {cityList.map((city, index) => (
-            <MenuItem value={city.id} key={index}>
+            <MenuItem value={city.id} key={city.id}>
               {city.name}
             </MenuItem>
           ))}
@@ -343,13 +365,13 @@ export default function Create() {
       </InputLabel>
 
       <InputLabel>
-        Pincode :
+        Zip Code :
         <Input
           type="number"
           maxLength={6}
+          value={employeeData.zipCode}
           {...register("zipCode", { type: "number" })}
-          value={data.zipCode}
-          onChange={onDataChange}
+          onChange={onFormDataChange}
         />
       </InputLabel>
 
@@ -358,13 +380,12 @@ export default function Create() {
         <Input
           placeholder="Enter password"
           variant="outlined"
+          value={employeeData.password}
           type="password"
           {...register("password", {
-            pattern:
-              /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/,
+            pattern: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.* ).{8,16}$/,
           })}
-          value={data.password}
-          onChange={onDataChange}
+          onChange={onFormDataChange}
         />
       </InputLabel>
       {errors?.password?.type === "pattern" && (
@@ -372,7 +393,7 @@ export default function Create() {
       )}
 
       <Button type="submit" variant="contained" onClick={handleSubmit}>
-        Submit
+        {isNewEmployee ? "Save" : "Update"}
       </Button>
       <Button variant="contained" onClick={onBackClick}>
         Back
