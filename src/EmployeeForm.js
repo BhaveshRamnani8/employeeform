@@ -17,11 +17,16 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import axios from "axios";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { employeeListUrl, countryListUrl, stateListUrl, cityListUrl, hobbiesList } from "./Constants";
+import {
+  employeeListUrl,
+  countryListUrl,
+  stateListUrl,
+  cityListUrl,
+  hobbiesList,
+} from "./Constants";
 
-export default function EmployeeForm() {
-  
-    const [employeeData, setEmployeeData] = useState({
+export default function EmployeeForm(props) {
+  const [employeeData, setEmployeeData] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -62,7 +67,7 @@ export default function EmployeeForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const isNewEmployee = id === "0";  
+  const isNewEmployee = id === "0";
 
   useEffect(() => {
     if (!isNewEmployee) {
@@ -74,8 +79,8 @@ export default function EmployeeForm() {
       setHobby(location.state?.data?.hobbies.split(","));
       setBirthDate(dayjs(new Date(location.state?.data?.birthDate)));
     }
-    //doubt
-  }, [location?.state?.data, setValue, isNewEmployee]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     axios
@@ -155,10 +160,12 @@ export default function EmployeeForm() {
 
     if (isNewEmployee) {
       axios.post(employeeListUrl, empData).then(() => {
+        props.setResponse("new employee created");
         navigate("/");
       });
     } else {
       axios.put(`${employeeListUrl}/${id}`, empData).then(() => {
+        props.setResponse("");
         navigate("/");
       });
     }
