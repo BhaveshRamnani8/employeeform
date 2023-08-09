@@ -25,7 +25,7 @@ import {
   hobbiesList,
 } from "./Constants";
 
-export default function EmployeeForm(props) {
+export default function EmployeeForm({ sendMessage }) {
   const [employeeData, setEmployeeData] = useState({
     firstName: "",
     lastName: "",
@@ -139,7 +139,7 @@ export default function EmployeeForm(props) {
     }
   };
 
-  const onSubmit = () => {
+  const onSubmit = async () => {
     const empData = {
       id: id,
       firstName: employeeData.firstName,
@@ -159,13 +159,12 @@ export default function EmployeeForm(props) {
     };
 
     if (isNewEmployee) {
-      axios.post(employeeListUrl, empData).then(() => {
-        props.setResponse("new employee created");
+      await axios.post(employeeListUrl, empData).then((response) => {
+        sendMessage(response.data);
         navigate("/");
       });
     } else {
-      axios.put(`${employeeListUrl}/${id}`, empData).then(() => {
-        props.setResponse("");
+      await axios.put(`${employeeListUrl}/${id}`, empData).then(() => {
         navigate("/");
       });
     }

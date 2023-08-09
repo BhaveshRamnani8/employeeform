@@ -1,6 +1,6 @@
 const baseUrl = "https://localhost:7087/api";
 const employeeListUrl = `${baseUrl}/Employee`;
-const employeeHubUrl = `https://localhost:7087/employeeHub`;
+const employeeHubUrl = `https://localhost:7087/hubs/employeeHub`;
 const countryListUrl = `${baseUrl}/Country`;
 const stateListUrl = `${baseUrl}/State/countryId?countryId=`;
 const cityListUrl = `${baseUrl}/City/stateId?stateId=`;
